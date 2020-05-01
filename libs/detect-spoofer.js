@@ -12,7 +12,6 @@ const my_mac = macaddress.one(mac => {})
 const pendingSYNs = {}
 
 let config = iniParser.get()
-
 if (!fs.existsSync(location_db)){
     fs.writeFileSync(location_db, JSON.stringify({}));
 }
@@ -47,7 +46,7 @@ function traceARPPacket(rawPacket){
             message: `Mac-ARP Header Mismatch : ${macAddressConverter(arpPacket.sender_ha.addr)} ' spoofing '  ${arpPacket.sender_pa.addr.join('.')}`,
             date: utilDate()
         }
-        logger(JON.stringify(message), 'debug')
+        logger(message, 'debug')
         return        
     }
     validateHost(arpPacket.sender_pa.addr.join('.'), macAddressConverter(arpPacket.sender_ha.addr))
@@ -65,19 +64,19 @@ function traceTCPPacket(rawPacket){
                 message: `[?] Received RST from :${host_ip}: ${host_port}`,
                 date: utilDate()
             }
-            logger(JON.stringify(message), 'debug')
+            logger(message, 'debug')
         }else{
             message = {
                 message: `[?] Received ACK from : ${host_ip}: ${host_port}`,
                 date: utilDate()
             }
-            logger(JON.stringify(message), 'debug')
+            logger(message, 'debug')
         }
         message = {
             message: ` [+] Validated : ${host_ip} is at ${pendingSYNs[host_ip +':'+ host_port][0]}`,
             date: utilDate()
         }
-        logger(JON.stringify(message), 'debug')
+        logger(message, 'debug')
         validatedHosts[host_ip] = pendingSYNs[host_ip +':'+ host_port][0];
         fs.writeFileSync(location_db, JSON.stringify(validatedHosts));
         delete pendingSYNs[host_ip +':'+ host_port];
@@ -128,20 +127,20 @@ function validateHost(host_ip, host_mac){
         message: `[?] Validating : ${host_ip} is  at ${host_mac}`,
         date: utilDate()
     }
-    logger(JON.stringify(message), 'debug')
+    logger(message, 'debug')
     if(validatedHosts[host_ip] != undefined){ //host is already validated
         if(validatedHosts[host_ip] === host_mac){//lets check current situation matches with validated one
             data = {
                 message: `[+] Already Validated : ${host_ip} is  at ${validatedHosts[host_ip]}`,
                 date: utilDate()
             }
-            logger(JON.stringify(message), 'debug')
+            logger(message, 'debug')
         }else{
             data = {
                 message: '[-] Validation Failed : '+host_ip+' at '+host_mac,
                 date: utilDate()
             }
-            logger(JON.stringify(message))
+            logger(message)
         }
         return
     }
@@ -154,7 +153,7 @@ function validateHost(host_ip, host_mac){
             message: `[?] Sent TCP SYN to : ${host_ip}:${host_port} at ${host_mac}`,
             date: utilDate()
         }
-        logger(JON.stringify(message), 'debug')
+        logger(message, 'debug')
         
         pendingSYNs[host_ip +':'+ host_port] = [host_mac, Date.now()];
         setTimeout(handleTimedOutTCPSYNs, 2000, host_ip, host_port);
@@ -189,7 +188,7 @@ function logger(str, type) {
     if(type !== 'debug'){
         
         logging.info(str)
-        fs.writeFileSync('./var/log/logArpSpoof.json', JSON.stringify(str, null, 4));
+        fs.writeFileSync('./var/log/logArpSpoof.json', JSON.stringify(str));
         // fs.writeFile('./var/log/logArpSpoof.json', JSON.stringify(str, null, 4));
     }
 }

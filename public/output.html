@@ -13,10 +13,16 @@
         <script src="//cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js"></script>
         <title>ARP POISONING</title>
         <style>
-            /* body {
-                background: #151313;
+            font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            @page
+            {
+                size: auto;
+                /* margin: 30px; */
             }
-     */
+            body {
+                 font-family: monospace;
+                 font-size: 14px;
+            }
             #sailorTableArea {
                 max-height: 300px;
                 overflow-x: auto;
@@ -66,19 +72,19 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-lg-6">
+                    <div class="shadow-lg p-3 mb-5 bg-white rounded">
                     <div class="card">
                         <div class="card-header">
                             ARP NETWORK
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="shadow-lg p-3 mb-5 bg-white rounded">
                             <div class="row grid-divider">                                                           
                                 <!-- <div id="sailorTableArea" class="table-responsive-sm table-striped"> -->
                                 <div class="table-responsive-sm table-striped">
                                     <table class="table" id="network-list">
                                         <thead>
-                                            <th>No</th>
+                                            <!-- <th>No</th> -->
                                             <th>IP</th>
                                             <th>Host</th>
                                             <th>Mac</th>
@@ -94,19 +100,32 @@
                     </div>                
                 </div>
                 <div class="col-md-6">
+                    <div class="shadow-lg p-3 mb-5 bg-white rounded">
                     <div class="card">
                         <div class="card-header">
                             ARP NETWORK ON UPDATE
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="shadow-lg p-3 mb-5 bg-dark text-white text-success rounded" style="overflow:auto; height:150px;" id="console">
-                            <!-- <div class="console"> -->
-                            <p id="logger">
-                            </p>
-                            <!-- </div> -->
+                            <div class="row grid-divider">                                                           
+                                <!-- <div id="sailorTableArea" class="table-responsive-sm table-striped"> -->
+                                <div class="table-responsive-sm table-striped">
+                                    <table class="table" id="network-update">
+                                        <thead>
+                                            <!-- <th>No</th> -->
+                                            <th>IP</th>
+                                            <th>Host</th>
+                                            <th>Mac</th>
+                                            <th>Interface</th>
+                                            <th>Seen</th>
+                                            <th>Vendor</th>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
-                    </div>                
+                    </div>                    
                 </div>    
             </div>                    
         </div>
@@ -130,11 +149,6 @@
 
 </html>
     
-    <!-- <body>
-        <h1>Express and socket.io</h1>
-        <div id="network-list"></div> -->
-        <!-- <script src="static/socket.io/node_modules/socket.io-client/socket.io.js"></script> -->
-        <!-- <script src="/jquery/jquery.min.js"></script> -->
 
 <script src="/assets/moment.js"></script>
 <script src="/assets/socket.io.js"></script>
@@ -178,18 +192,21 @@
     // update to new connnection to list
     socket.on('updateNet', function (data) {
         console.log("Rendering updateNet network : ", data); 
-        // fillTableNetwork(data)                                    
+        fillTableNetworkUpdate(data)                              
         // $('#network-list').append(html);
         // socket.emit('network on success', { my: 'data' });
     });  
 
     socket.on('detectedArp', function(data){
-        console.log('arp', data)
-        // let mess = JSON.parse(data)
-
+        console.log('arp', JSON.stringify(data))
+        let mess = JSON.parse(JSON.stringify(data.split("\n")))
+        let logging = ''
         // if (typeof mess.statas == "undefined" || mess.status) {
-            let logging = "<li>" +data + "</li>"
-
+        for (let i = 0; i < mess.length; i++) {
+            console.log(typeof mess[i])
+            if( mess[i] == '' ) logging = '<li> waiting...</li>'
+            else logging = "<li> [ARP-DETECTED] at " +mess[i]+ "</li>"
+            // console.log(+mess[i])
             let out = document.getElementById("console")
 
             let isScrolledToBottom = out.scrollHeight - out.clientHeight <= out.scrollTop + 1;
@@ -198,12 +215,47 @@
             // scroll to bottom if isScrolledToBotto
             if (isScrolledToBottom)
                 out.scrollTop = out.scrollHeight - out.clientHeight;
+            
+        }
+            
 
         // } else {
         //     $("#detectarp").append("No APR Poisoning detected")
         //     return
         // }
     })
+
+    function fillTableNetworkUpdate(dataSet){
+        if(document.readyState === "complete") {
+            $("#network-update").DataTable({
+                retrieve: true,
+                deferRender: true,
+                searching: true,
+                paging: true,
+                data:dataSet,
+                columns: [
+                    // {
+                    //     data: "id",
+                    //     render: function (data, type, row, meta) {
+                    //         return meta.row + meta.settings._iDisplayStart + 1;
+                    //     }
+                    // },
+                    {data: "ip"},
+                    {data: "host"},
+                    {data: "mac"},
+                    {data: "interface"},
+                    {
+                        data: "seen",
+                        render: function(d) {
+                            return moment(d).format("YYYY:MM:DD HH:mm");
+                        }
+                    },
+                    {data: "vendor", // can be null or undefined
+                    defaultContent: "<i> Unknown </i>"}
+                ]          
+            });
+        }
+    }
 
     function fillTableNetwork(dataSet){
         if(document.readyState === "complete") {
@@ -212,27 +264,21 @@
                 deferRender: true,
                 searching: true,
                 paging: true,
-                "data":dataSet,
-                "columns": [
+                data:dataSet,
+                columns: [
+                    {data: "ip"},
+                    {data: "host"},
+                    {data: "mac"},
+                    {data: "interface"},
                     {
-                        "data": "id",
-                        render: function (data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    {"data": "ip"},
-                    {"data": "host"},
-                    {"data": "mac"},
-                    {"data": "interface"},
-                    {
-                        "data": "seen",
+                        data: "seen",
                         render: function(d) {
                             return moment(d).format("YYYY:MM:DD HH:mm");
                         }
                     },
-                    {"data": "vendor", // can be null or undefined
-                    "defaultContent": "<i> Unknown </i>"}
-                ],
+                    {data: "vendor", // can be null or undefined
+                    defaultContent: "<i> Unknown </i>"}
+                ]            
             });
         }
     }

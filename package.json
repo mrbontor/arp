@@ -29,6 +29,7 @@
     "nodearp": "^1.0.2",
     "os": "^0.1.1",
     "socket.io": "^2.3.0",
+    "system-commands": "^1.1.7",
     "winston": "^3.2.1"
   }
 }

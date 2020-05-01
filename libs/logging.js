@@ -1,5 +1,5 @@
 'use strict'
-
+const utilDate = require('./utils')
 const winston = require('winston')
 const {
     createLogger,
@@ -22,7 +22,7 @@ let level = 'debug'
 let errorSufix = '-error'
 
 const myFormat = printf(info => {
-    return `${info.timestamp} ${info.level}: ${info.message}`;
+    return `${utilDate()} : ${info.message}`;
 });
 
 var logger = null

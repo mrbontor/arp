@@ -1,3 +1,5 @@
+'use strict';
+
 const iniParser = require('./libs/iniParser')
 const logging = require('./libs/logging')
 const args = require('minimist')(process.argv.slice(2));
@@ -144,18 +146,8 @@ listenPacket(iniParser.get().interface.name, function () {
   console.log('Start Capturing packet....')
 })
 // arpListener.listenPacket('enp0s3')
-
-// var detectedArp = fs.readFileSync('./var/log/logArpSpoof.log').toString('utf8');
-var detectedArp = fs.readFileSync('./var/log/logArpSpoof.json')
-// console.log( JSON.stringify(detectedArp, null, 4))
-
-//   var detectedArp = fs.readFile('./var/log/logArpSpoof.log', 'utf-8', (err, file) => {
-//   const lines = file.split('\n')
-
-//   for (let line of lines)
-//     console.log(line)
-//     io.sockets.emit('detectedArp', line)
-// });
+fs.truncate('./var/log/logArpSpoof.log', 0, function(){console.log('done')})
+var detectedArp = fs.readFileSync('./var/log/logArpSpoof.log').toString('utf8');
 io.sockets.emit('detectedArp', JSON.stringify(detectedArp))
 
 // Handle connection
