@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="/assets/jquery.js" ></script>
+
+        <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+        <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> -->
+        <link rel="stylesheet" href="//cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css">
+        <script src="//cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+        <script src="//cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js"></script>
+        <title>ARP POISONING</title>
+        <style>
+            /* body {
+                background: #151313;
+            }
+     */
+            #sailorTableArea {
+                max-height: 300px;
+                overflow-x: auto;
+                overflow-y: auto;
+            }
+    
+            #hops {
+                white-space: normal;
+            }
+    
+            tbody {
+                display: block;
+                height: 200px;
+                overflow: auto;
+            }
+    
+            thead,
+            tbody tr {
+                display: table;
+                width: 100%;
+                table-layout: fixed;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container-fluid">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+                    <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                        </li>
+                    </ul>
+    
+                    <div class="mx-auto">
+                        <a href="#" class="navbar-brand">ARP POISONING</a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <hr>
+        <br>
+        <br>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            ARP NETWORK
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="shadow-lg p-3 mb-5 bg-white rounded">
+                            <div class="row grid-divider">                                                           
+                                <!-- <div id="sailorTableArea" class="table-responsive-sm table-striped"> -->
+                                <div class="table-responsive-sm table-striped">
+                                    <table class="table" id="network-list">
+                                        <thead>
+                                            <th>No</th>
+                                            <th>IP</th>
+                                            <th>Host</th>
+                                            <th>Mac</th>
+                                            <th>Interface</th>
+                                            <th>Seen</th>
+                                            <th>Vendor</th>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>                
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            ARP NETWORK ON UPDATE
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="shadow-lg p-3 mb-5 bg-dark text-white text-success rounded" style="overflow:auto; height:150px;" id="console">
+                            <!-- <div class="console"> -->
+                            <p id="logger">
+                            </p>
+                            <!-- </div> -->
+                        </div>
+                    </div>                
+                </div>    
+            </div>                    
+        </div>
+        <hr>
+        <div class="container-fluid">
+            <div class="card">
+                <div class="card-header">
+                    Detected
+                </div>
+                <div class="card-body">
+                    <div class="shadow-lg p-3 mb-5 bg-dark text-white text-success rounded" style="overflow:auto; height:150px;" id="console">
+                        <!-- <div class="console"> -->
+                        <p id="detectarp">
+                        </p>
+                        <!-- </div> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+
+</html>
+    
+    <!-- <body>
+        <h1>Express and socket.io</h1>
+        <div id="network-list"></div> -->
+        <!-- <script src="static/socket.io/node_modules/socket.io-client/socket.io.js"></script> -->
+        <!-- <script src="/jquery/jquery.min.js"></script> -->
+
+<script src="/assets/moment.js"></script>
+<script src="/assets/socket.io.js"></script>
+<script>
+    var socket = io();
+    // var moment = moment();
+    // connection with server 
+    socket.on('connect', function(){ 
+        console.log('Connected to Server')
+    }); 
+
+    
+    socket.on('discoverNet', function (data) {
+        fillTableNetwork(data)  
+        console.log("Rendering discoverNet network : ", data); 
+                                          
+        // $('#network-list').append(html);
+        // socket.emit('network on success', { my: 'data' });
+    });  
+
+
+    // lost connection
+    socket.on('lostNet', function (data) {
+        console.log("Rendering lostNet network : ", data); 
+        // fillTableNetwork(data)                                    
+        // $('#network-list').append(html);
+        // socket.emit('network on success', { my: 'data' });
+    });  
+
+
+
+    // found new connecction
+    socket.on('foundNet', function (data) {
+        console.log("Rendering foundNet network : ", data); 
+        // fillTableNetwork(data)                                    
+        // $('#network-list').append(html);
+        // socket.emit('network on success', { my: 'data' });
+    });
+
+    
+    // update to new connnection to list
+    socket.on('updateNet', function (data) {
+        console.log("Rendering updateNet network : ", data); 
+        // fillTableNetwork(data)                                    
+        // $('#network-list').append(html);
+        // socket.emit('network on success', { my: 'data' });
+    });  
+
+    socket.on('detectedArp', function(data){
+        console.log('arp', data)
+        // let mess = JSON.parse(data)
+
+        // if (typeof mess.statas == "undefined" || mess.status) {
+            let logging = "<li>" +data + "</li>"
+
+            let out = document.getElementById("console")
+
+            let isScrolledToBottom = out.scrollHeight - out.clientHeight <= out.scrollTop + 1;
+            console.log(out.scrollHeight - out.clientHeight, out.scrollTop + 1);
+            $("#detectarp").append(logging)
+            // scroll to bottom if isScrolledToBotto
+            if (isScrolledToBottom)
+                out.scrollTop = out.scrollHeight - out.clientHeight;
+
+        // } else {
+        //     $("#detectarp").append("No APR Poisoning detected")
+        //     return
+        // }
+    })
+
+    function fillTableNetwork(dataSet){
+        if(document.readyState === "complete") {
+            $("#network-list").DataTable({
+                retrieve: true,
+                deferRender: true,
+                searching: true,
+                paging: true,
+                "data":dataSet,
+                "columns": [
+                    {
+                        "data": "id",
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {"data": "ip"},
+                    {"data": "host"},
+                    {"data": "mac"},
+                    {"data": "interface"},
+                    {
+                        "data": "seen",
+                        render: function(d) {
+                            return moment(d).format("YYYY:MM:DD HH:mm");
+                        }
+                    },
+                    {"data": "vendor", // can be null or undefined
+                    "defaultContent": "<i> Unknown </i>"}
+                ],
+            });
+        }
+    }
+</script>
