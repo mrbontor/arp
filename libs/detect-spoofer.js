@@ -19,13 +19,15 @@ if (!fs.existsSync(location_db)){
 const validatedHostsRaw = fs.readFileSync(location_db);
 const validatedHosts = JSON.parse(validatedHostsRaw);
 
+var message = {
+    message: '', date: ''
+}
 
 function listenPacket(iface) {
     let pcapSession = pcap.createSession(iface, 'arp or (tcp dst port 31337)')
     
     pcapSession.on('packet', function (rawPacket) {
         let packet = pcap.decode.packet(rawPacket)
-        // logger('packet', JSON.stringify(packet.payload))
         if(packet.payload.ethertype == 0x0800){//TCP
             traceTCPPacket(packet.payload) //line header packets
         }else if (packet.payload.ethertype == 0x0806){//ARP
@@ -41,13 +43,11 @@ function traceARPPacket(rawPacket){
     }
     
     if(!checkHeaders(rawPacket)){
-        let data = {
-            // type: 'Mac-ARP Header Mismatch',
+        message = {
             message: `Mac-ARP Header Mismatch : ${macAddressConverter(arpPacket.sender_ha.addr)} ' spoofing '  ${arpPacket.sender_pa.addr.join('.')}`,
             date: utilDate()
         }
-        logger(JON.stringify(data), 'debug')
-        // logger('Mac-ARP Header Mismatch : ' + macAddressConverter(arpPacket.sender_ha.addr) + ' spoofing ' + arpPacket.sender_pa.addr.join('.'))
+        logger(JON.stringify(message), 'debug')
         return        
     }
     validateHost(arpPacket.sender_pa.addr.join('.'), macAddressConverter(arpPacket.sender_ha.addr))
@@ -61,31 +61,24 @@ function traceTCPPacket(rawPacket){
     if(pendingSYNs[host_ip +':'+ host_port] != undefined){
         if(pendingSYNs[host_ip +':'+ host_port][0] !== host_mac) return;
         if(rawPacket.payload.payload.flags.rst){
-            let data = {
-                // type: '[?] Received RST from',
+            message = {
                 message: `[?] Received RST from :${host_ip}: ${host_port}`,
                 date: utilDate()
             }
-            logger(JON.stringify(data), 'debug')
-            // logger('[?] Received RST from '+host_ip+':'+host_port, 'debug');
+            logger(JON.stringify(message), 'debug')
         }else{
-            let data = {
-                // type: '[?] Received ACK from',
+            message = {
                 message: `[?] Received ACK from : ${host_ip}: ${host_port}`,
                 date: utilDate()
             }
-            logger(JON.stringify(data), 'debug')
-            // logger('[?] Received ACK from '+host_ip+':'+host_port, 'debug');
+            logger(JON.stringify(message), 'debug')
         }
-        let data = {
-            // type: '[+] Validated',
+        message = {
             message: ` [+] Validated : ${host_ip} is at ${pendingSYNs[host_ip +':'+ host_port][0]}`,
             date: utilDate()
         }
-        logger(JON.stringify(data), 'debug')
-        // logger('[+] Validated: '+host_ip+' is at '+pendingSYNs[host_ip +':'+ host_port][0], 'debug');
+        logger(JON.stringify(message), 'debug')
         validatedHosts[host_ip] = pendingSYNs[host_ip +':'+ host_port][0];
-        //Write to database on new validation
         fs.writeFileSync(location_db, JSON.stringify(validatedHosts));
         delete pendingSYNs[host_ip +':'+ host_port];
         //TODO: clear timeout on validation
@@ -131,24 +124,24 @@ function checkHeaders(rawPacket){
 
 //send a TCP SYN to the host and wait for 2 sec to receive a RST or ACK
 function validateHost(host_ip, host_mac){
-    let data = {
+    message = {
         message: `[?] Validating : ${host_ip} is  at ${host_mac}`,
         date: utilDate()
     }
-    logger(JON.stringify(data), 'debug')
+    logger(JON.stringify(message), 'debug')
     if(validatedHosts[host_ip] != undefined){ //host is already validated
         if(validatedHosts[host_ip] === host_mac){//lets check current situation matches with validated one
             data = {
                 message: `[+] Already Validated : ${host_ip} is  at ${validatedHosts[host_ip]}`,
                 date: utilDate()
             }
-            logger(JON.stringify(data), 'debug')
+            logger(JON.stringify(message), 'debug')
         }else{
             data = {
                 message: '[-] Validation Failed : '+host_ip+' at '+host_mac,
                 date: utilDate()
             }
-            logger(JON.stringify(data))
+            logger(JON.stringify(message))
         }
         return
     }
@@ -157,12 +150,12 @@ function validateHost(host_ip, host_mac){
   var src_ip = ip.address();
   var src_mac = my_mac;
     if(!tcp.sendSYN(config.interface.name, src_mac, host_mac, src_ip, 31337, host_ip, host_port)){
-        data = {
+        message = {
             message: `[?] Sent TCP SYN to : ${host_ip}:${host_port} at ${host_mac}`,
             date: utilDate()
         }
-        logger(JON.stringify(data), 'debug')
-        // logger('[?] Sent TCP SYN to '+host_ip+':'+host_port+' at '+host_mac, 'debug');
+        logger(JON.stringify(message), 'debug')
+        
         pendingSYNs[host_ip +':'+ host_port] = [host_mac, Date.now()];
         setTimeout(handleTimedOutTCPSYNs, 2000, host_ip, host_port);
     }  
@@ -196,9 +189,8 @@ function logger(str, type) {
     if(type !== 'debug'){
         
         logging.info(str)
-        fs.writeFileSync('./var/log/logArpSpoof.json', JSON.stringify(str));
+        fs.writeFileSync('./var/log/logArpSpoof.json', JSON.stringify(str, null, 4));
         // fs.writeFile('./var/log/logArpSpoof.json', JSON.stringify(str, null, 4));
-        logging.info(`[ARP-DETECTED] >>>>> ${str}`)
     }
 }
 
