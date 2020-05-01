@@ -145,7 +145,8 @@ listenPacket(iniParser.get().interface.name, function () {
 })
 // arpListener.listenPacket('enp0s3')
 
-var detectedArp = fs.readFileSync('./var/log/logArpSpoof.log').toString('utf8');
+// var detectedArp = fs.readFileSync('./var/log/logArpSpoof.log').toString('utf8');
+var detectedArp = fs.readFileSync('./var/log/logArpSpoof.json')
 // console.log( JSON.stringify(detectedArp, null, 4))
 
 //   var detectedArp = fs.readFile('./var/log/logArpSpoof.log', 'utf-8', (err, file) => {
